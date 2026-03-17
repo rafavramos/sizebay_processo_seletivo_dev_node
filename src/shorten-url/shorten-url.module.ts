@@ -7,6 +7,7 @@ import { CreateShortenUrlUseCase } from './use-cases/create-shorten-url.use-case
 import { GetShortenUrlUseCase } from './use-cases/get-shorten-url.use-case';
 import { UpdateShortenUrlUseCase } from './use-cases/update-shorten-url.use-case';
 import { DeleteShortenUrlUseCase } from './use-cases/delete-shorten-url.use-case';
+import { GetShortenUrlStatsUseCase } from './use-cases/get-shorten-url-stats.use-case';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ShortenUrl])],
@@ -17,12 +18,14 @@ import { DeleteShortenUrlUseCase } from './use-cases/delete-shorten-url.use-case
     GetShortenUrlUseCase,
     UpdateShortenUrlUseCase,
     DeleteShortenUrlUseCase,
+    GetShortenUrlStatsUseCase,
   ],
   exports: [
     CreateShortenUrlUseCase,
     GetShortenUrlUseCase,
     UpdateShortenUrlUseCase,
     DeleteShortenUrlUseCase,
+    GetShortenUrlStatsUseCase,
   ],
 })
 export class ShortenUrlModule {}

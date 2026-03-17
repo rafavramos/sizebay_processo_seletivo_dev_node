@@ -15,6 +15,7 @@ import { CreateShortenUrlUseCase } from './use-cases/create-shorten-url.use-case
 import { GetShortenUrlUseCase } from './use-cases/get-shorten-url.use-case';
 import { UpdateShortenUrlUseCase } from './use-cases/update-shorten-url.use-case';
 import { DeleteShortenUrlUseCase } from './use-cases/delete-shorten-url.use-case';
+import { GetShortenUrlStatsUseCase } from './use-cases/get-shorten-url-stats.use-case';
 
 @Controller('shorten')
 export class ShortenUrlController {
@@ -23,6 +24,7 @@ export class ShortenUrlController {
     private readonly getShortenUrlUseCase: GetShortenUrlUseCase,
     private readonly updateShortenUrlUseCase: UpdateShortenUrlUseCase,
     private readonly deleteShortenUrlUseCase: DeleteShortenUrlUseCase,
+    private readonly getShortenUrlStatsUseCase: GetShortenUrlStatsUseCase,
   ) {}
 
   @Post()
@@ -77,5 +79,18 @@ export class ShortenUrlController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('shortCode') shortCode: string) {
     await this.deleteShortenUrlUseCase.execute(shortCode);
+  }
+
+  @Get(':shortCode/stats')
+  async getStats(@Param('shortCode') shortCode: string) {
+    const result = await this.getShortenUrlStatsUseCase.execute(shortCode);
+    return {
+      id: result.id,
+      url: result.originalUrl,
+      shortCode: result.shortCode,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
+      accessCount: result.accessCount,
+    };
   }
 }
