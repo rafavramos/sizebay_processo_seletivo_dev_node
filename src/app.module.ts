@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ShortenUrlModule } from './shorten-url/shorten-url.module';
 import { ShortenUrl } from './shorten-url/entities/shorten-url.entity';
 
@@ -27,7 +25,7 @@ import { ShortenUrl } from './shorten-url/entities/shorten-url.entity';
     }),
     ShortenUrlModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
