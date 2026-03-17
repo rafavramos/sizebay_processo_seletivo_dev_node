@@ -6,6 +6,7 @@ import {
   HttpCode,
   Get,
   Put,
+  Delete,
   Param,
   NotFoundException,
 } from '@nestjs/common';
@@ -13,6 +14,7 @@ import { CreateShortenUrlDto } from './dto/create-shorten-url.dto';
 import { CreateShortenUrlUseCase } from './use-cases/create-shorten-url.use-case';
 import { GetShortenUrlUseCase } from './use-cases/get-shorten-url.use-case';
 import { UpdateShortenUrlUseCase } from './use-cases/update-shorten-url.use-case';
+import { DeleteShortenUrlUseCase } from './use-cases/delete-shorten-url.use-case';
 
 @Controller('shorten')
 export class ShortenUrlController {
@@ -20,6 +22,7 @@ export class ShortenUrlController {
     private readonly createShortenUrlUseCase: CreateShortenUrlUseCase,
     private readonly getShortenUrlUseCase: GetShortenUrlUseCase,
     private readonly updateShortenUrlUseCase: UpdateShortenUrlUseCase,
+    private readonly deleteShortenUrlUseCase: DeleteShortenUrlUseCase,
   ) {}
 
   @Post()
@@ -68,5 +71,11 @@ export class ShortenUrlController {
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
     };
+  }
+
+  @Delete(':shortCode')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@Param('shortCode') shortCode: string) {
+    await this.deleteShortenUrlUseCase.execute(shortCode);
   }
 }
