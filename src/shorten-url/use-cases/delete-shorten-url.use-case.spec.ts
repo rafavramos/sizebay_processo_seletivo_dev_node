@@ -1,50 +1,48 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository, DeleteResult } from 'typeorm';
-import * as sinon from 'sinon';
+import { TestingModule } from '@nestjs/testing';
 import { DeleteShortenUrlUseCase } from './delete-shorten-url.use-case';
 import { ShortenUrl } from '../entities/shorten-url.entity';
+import { DataSource } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
+import { createIntegrationTestModule } from '../../../test/utils/test-setup.util';
 
-describe('DeleteShortenUrlUseCase', () => {
+describe('DeleteShortenUrlUseCase (Integration)', () => {
   let useCase: DeleteShortenUrlUseCase;
-  let repository: sinon.SinonStubbedInstance<Repository<ShortenUrl>>;
+  let dataSource: DataSource;
 
-  beforeEach(async () => {
-    const repoMock = sinon.createStubInstance(Repository);
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        DeleteShortenUrlUseCase,
-        {
-          provide: getRepositoryToken(ShortenUrl),
-          useValue: repoMock,
-        },
-      ],
-    }).compile();
+  beforeAll(async () => {
+    const module: TestingModule = await createIntegrationTestModule([
+      DeleteShortenUrlUseCase,
+    ]);
 
     useCase = module.get<DeleteShortenUrlUseCase>(DeleteShortenUrlUseCase);
-    repository = repoMock as unknown as sinon.SinonStubbedInstance<
-      Repository<ShortenUrl>
-    >;
+    dataSource = module.get<DataSource>(DataSource);
   });
 
-  afterEach(() => {
-    sinon.restore();
+  afterAll(async () => {
+    await dataSource.destroy();
+  });
+
+  beforeEach(async () => {
+    await dataSource.getRepository(ShortenUrl).clear();
   });
 
   it('should delete an existing short URL', async () => {
     const code = 'abc123';
-    repository.delete.resolves({ affected: 1 } as DeleteResult);
+    await dataSource.getRepository(ShortenUrl).save({
+      originalUrl: 'https://example.com',
+      shortCode: code,
+    });
 
     await expect(useCase.execute(code)).resolves.not.toThrow();
-    expect(repository.delete.calledOnceWith({ shortCode: code })).toBe(true);
+
+    const result = await dataSource
+      .getRepository(ShortenUrl)
+      .findOneBy({ shortCode: code });
+    expect(result).toBeNull();
   });
 
   it('should throw NotFoundException if short URL does not exist', async () => {
     const code = 'notfound';
-    repository.delete.resolves({ affected: 0 } as DeleteResult);
-
     await expect(useCase.execute(code)).rejects.toThrow(NotFoundException);
   });
 });

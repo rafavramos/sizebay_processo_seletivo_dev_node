@@ -1,60 +1,54 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import * as sinon from 'sinon';
+import { TestingModule } from '@nestjs/testing';
 import { UpdateShortenUrlUseCase } from './update-shorten-url.use-case';
 import { ShortenUrl } from '../entities/shorten-url.entity';
-import { ShortenUrlScenarios } from '../../../test/scenarios/shorten-url.scenarios';
+import { DataSource } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
+import { createIntegrationTestModule } from '../../../test/utils/test-setup.util';
 
-describe('UpdateShortenUrlUseCase', () => {
+describe('UpdateShortenUrlUseCase (Integration)', () => {
   let useCase: UpdateShortenUrlUseCase;
-  let repository: sinon.SinonStubbedInstance<Repository<ShortenUrl>>;
+  let dataSource: DataSource;
 
-  beforeEach(async () => {
-    const repoMock = sinon.createStubInstance(Repository);
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UpdateShortenUrlUseCase,
-        {
-          provide: getRepositoryToken(ShortenUrl),
-          useValue: repoMock,
-        },
-      ],
-    }).compile();
+  beforeAll(async () => {
+    const module: TestingModule = await createIntegrationTestModule([
+      UpdateShortenUrlUseCase,
+    ]);
 
     useCase = module.get<UpdateShortenUrlUseCase>(UpdateShortenUrlUseCase);
-    repository = repoMock as unknown as sinon.SinonStubbedInstance<
-      Repository<ShortenUrl>
-    >;
+    dataSource = module.get<DataSource>(DataSource);
   });
 
-  afterEach(() => {
-    sinon.restore();
+  afterAll(async () => {
+    await dataSource.destroy();
   });
 
-  it('should update an existing short URL', async () => {
+  beforeEach(async () => {
+    await dataSource.getRepository(ShortenUrl).clear();
+  });
+
+  it('should update the original URL of an existing short code', async () => {
     const code = 'abc123';
-    const dto = { url: 'https://updated-example.com' };
-    const mockUrl = ShortenUrlScenarios.valid;
-    const expectedResult = ShortenUrlScenarios.updated(dto.url, code);
+    await dataSource.getRepository(ShortenUrl).save({
+      originalUrl: 'https://old-url.com',
+      shortCode: code,
+    });
 
-    repository.findOneBy.resolves(mockUrl);
-    repository.save.resolves(expectedResult);
+    const newUrl = 'https://new-url.com';
+    const result = await useCase.execute(code, { url: newUrl });
 
-    const result = await useCase.execute(code, dto);
+    expect(result).toBeDefined();
+    expect(result.originalUrl).toBe(newUrl);
 
-    expect(result.originalUrl).toBe(dto.url);
-    expect(repository.findOneBy.calledOnceWith({ shortCode: code })).toBe(true);
-    expect(repository.save.calledOnce).toBe(true);
+    const updated = await dataSource
+      .getRepository(ShortenUrl)
+      .findOneBy({ shortCode: code });
+    expect(updated?.originalUrl).toBe(newUrl);
   });
 
   it('should throw NotFoundException if short URL does not exist', async () => {
     const code = 'notfound';
-    const dto = { url: 'https://updated-example.com' };
-    repository.findOneBy.resolves(null);
-
-    await expect(useCase.execute(code, dto)).rejects.toThrow(NotFoundException);
+    await expect(
+      useCase.execute(code, { url: 'https://example.com' }),
+    ).rejects.toThrow(NotFoundException);
   });
 });

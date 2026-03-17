@@ -1,54 +1,48 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import * as sinon from 'sinon';
+import { TestingModule } from '@nestjs/testing';
 import { GetShortenUrlStatsUseCase } from './get-shorten-url-stats.use-case';
 import { ShortenUrl } from '../entities/shorten-url.entity';
+import { DataSource } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
-import { ShortenUrlScenarios } from '../../../test/scenarios/shorten-url.scenarios';
+import { createIntegrationTestModule } from '../../../test/utils/test-setup.util';
 
-describe('GetShortenUrlStatsUseCase', () => {
+describe('GetShortenUrlStatsUseCase (Integration)', () => {
   let useCase: GetShortenUrlStatsUseCase;
-  let repository: sinon.SinonStubbedInstance<Repository<ShortenUrl>>;
+  let dataSource: DataSource;
 
-  beforeEach(async () => {
-    const repoMock = sinon.createStubInstance(Repository);
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        GetShortenUrlStatsUseCase,
-        {
-          provide: getRepositoryToken(ShortenUrl),
-          useValue: repoMock,
-        },
-      ],
-    }).compile();
+  beforeAll(async () => {
+    const module: TestingModule = await createIntegrationTestModule([
+      GetShortenUrlStatsUseCase,
+    ]);
 
     useCase = module.get<GetShortenUrlStatsUseCase>(GetShortenUrlStatsUseCase);
-    repository = repoMock as unknown as sinon.SinonStubbedInstance<
-      Repository<ShortenUrl>
-    >;
+    dataSource = module.get<DataSource>(DataSource);
   });
 
-  afterEach(() => {
-    sinon.restore();
+  afterAll(async () => {
+    await dataSource.destroy();
+  });
+
+  beforeEach(async () => {
+    await dataSource.getRepository(ShortenUrl).clear();
   });
 
   it('should return stats for an existing short URL', async () => {
     const code = 'abc123';
-    const expectedResult = ShortenUrlScenarios.valid;
-    repository.findOneBy.resolves(expectedResult);
+    await dataSource.getRepository(ShortenUrl).save({
+      originalUrl: 'https://example.com',
+      shortCode: code,
+      accessCount: 10,
+    });
 
     const result = await useCase.execute(code);
 
-    expect(result).toEqual(expectedResult);
-    expect(repository.findOneBy.calledOnceWith({ shortCode: code })).toBe(true);
+    expect(result).toBeDefined();
+    expect(result.shortCode).toBe(code);
+    expect(result.accessCount).toBe(10);
   });
 
   it('should throw NotFoundException if short URL does not exist', async () => {
     const code = 'notfound';
-    repository.findOneBy.resolves(null);
-
     await expect(useCase.execute(code)).rejects.toThrow(NotFoundException);
   });
 });
