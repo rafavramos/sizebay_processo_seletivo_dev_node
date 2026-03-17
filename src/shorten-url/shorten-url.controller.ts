@@ -10,14 +10,7 @@ import {
   Param,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiCreatedResponse,
-  ApiOkResponse,
-  ApiNotFoundResponse,
-  ApiNoContentResponse,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateShortenUrlDto } from './dto/create-shorten-url.dto';
 import { ShortenUrlResponseDto } from './dto/shorten-url-response.dto';
 import { ShortenUrlStatsResponseDto } from './dto/shorten-url-stats-response.dto';
@@ -41,7 +34,8 @@ export class ShortenUrlController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new short URL' })
-  @ApiCreatedResponse({
+  @ApiResponse({
+    status: HttpStatus.CREATED,
     description: 'The short URL has been successfully created.',
     type: ShortenUrlResponseDto,
   })
@@ -58,11 +52,15 @@ export class ShortenUrlController {
 
   @Get(':shortCode')
   @ApiOperation({ summary: 'Retrieve original URL from short code' })
-  @ApiOkResponse({
+  @ApiResponse({
+    status: HttpStatus.OK,
     description: 'Return the original URL data.',
     type: ShortenUrlResponseDto,
   })
-  @ApiNotFoundResponse({ description: 'Short URL not found.' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Short URL not found.',
+  })
   async findOne(@Param('shortCode') shortCode: string) {
     const result = await this.getShortenUrlUseCase.execute(shortCode);
 
@@ -81,11 +79,15 @@ export class ShortenUrlController {
 
   @Put(':shortCode')
   @ApiOperation({ summary: 'Update an existing short URL' })
-  @ApiOkResponse({
+  @ApiResponse({
+    status: HttpStatus.OK,
     description: 'The original URL has been successfully updated.',
     type: ShortenUrlResponseDto,
   })
-  @ApiNotFoundResponse({ description: 'Short URL not found.' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Short URL not found.',
+  })
   async update(
     @Param('shortCode') shortCode: string,
     @Body() updateDto: CreateShortenUrlDto,
@@ -106,21 +108,29 @@ export class ShortenUrlController {
   @Delete(':shortCode')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete an existing short URL' })
-  @ApiNoContentResponse({
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
     description: 'The short URL has been successfully deleted.',
   })
-  @ApiNotFoundResponse({ description: 'Short URL not found.' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Short URL not found.',
+  })
   async remove(@Param('shortCode') shortCode: string) {
     await this.deleteShortenUrlUseCase.execute(shortCode);
   }
 
   @Get(':shortCode/stats')
   @ApiOperation({ summary: 'Get statistics on the short URL' })
-  @ApiOkResponse({
+  @ApiResponse({
+    status: HttpStatus.OK,
     description: 'Return access statistics for the short URL.',
     type: ShortenUrlStatsResponseDto,
   })
-  @ApiNotFoundResponse({ description: 'Short URL not found.' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Short URL not found.',
+  })
   async getStats(@Param('shortCode') shortCode: string) {
     const result = await this.getShortenUrlStatsUseCase.execute(shortCode);
     return {
