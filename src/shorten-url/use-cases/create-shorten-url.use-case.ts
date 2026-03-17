@@ -26,7 +26,7 @@ export class CreateShortenUrlUseCase {
   }
 
   private async generateUniqueShortCode(): Promise<string> {
-    let shortCode: string;
+    let shortCode = '';
     let isUnique = false;
 
     while (!isUnique) {
