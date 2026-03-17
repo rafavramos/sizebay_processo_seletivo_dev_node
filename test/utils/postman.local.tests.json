@@ -1,0 +1,134 @@
+{
+    "info": {
+        "name": "URL Shortener API",
+        "description": "Coleção de requisições para testar a API RESTful do serviço de encurtamento de URLs.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "1. Create Short URL",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"url\": \"https://www.example.com/some/long/url\"\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:3000/shorten",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "shorten"
+                    ]
+                },
+                "description": "Cria uma nova URL encurtada. Deve retornar status 201 Created."
+            },
+            "response": []
+        },
+        {
+            "name": "2. Retrieve Original URL",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:3000/shorten/abc123",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "shorten",
+                        "abc123"
+                    ]
+                },
+                "description": "Recupera a URL original a partir do código encurtado (ex: abc123). Deve retornar status 200 OK."
+            },
+            "response": []
+        },
+        {
+            "name": "3. Update Short URL",
+            "request": {
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"url\": \"https://www.example.com/some/updated/url\"\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:3000/shorten/abc123",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "shorten",
+                        "abc123"
+                    ]
+                },
+                "description": "Atualiza uma URL encurtada existente. Deve retornar status 200 OK."
+            },
+            "response": []
+        },
+        {
+            "name": "4. Get URL Statistics",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:3000/shorten/abc123/stats",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "shorten",
+                        "abc123",
+                        "stats"
+                    ]
+                },
+                "description": "Obtém as estatísticas de acesso de uma URL encurtada. Deve retornar status 200 OK."
+            },
+            "response": []
+        },
+        {
+            "name": "5. Delete Short URL",
+            "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:3000/shorten/abc123",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "shorten",
+                        "abc123"
+                    ]
+                },
+                "description": "Remove uma URL encurtada existente. Deve retornar status 204 No Content."
+            },
+            "response": []
+        }
+    ]
+}

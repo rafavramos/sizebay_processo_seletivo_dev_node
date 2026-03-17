@@ -8,6 +8,8 @@ import { ShortenUrl } from './shorten-url/entities/shorten-url.entity';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath:
+        process.env.NODE_ENV === 'test' ? ['.env.test', '.env'] : '.env',
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
