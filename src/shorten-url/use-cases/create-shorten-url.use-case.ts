@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ShortenUrl } from './entities/shorten-url.entity';
-import { CreateShortenUrlDto } from './dto/create-shorten-url.dto';
+import { ShortenUrl } from '../entities/shorten-url.entity';
+import { CreateShortenUrlDto } from '../dto/create-shorten-url.dto';
 
 @Injectable()
-export class ShortenUrlService {
+export class CreateShortenUrlUseCase {
   private readonly SHORT_CODE_LENGTH = 6;
 
   constructor(
@@ -13,7 +13,7 @@ export class ShortenUrlService {
     private readonly shortenUrlRepository: Repository<ShortenUrl>,
   ) {}
 
-  async create(createDto: CreateShortenUrlDto): Promise<ShortenUrl> {
+  async execute(createDto: CreateShortenUrlDto): Promise<ShortenUrl> {
     const { url } = createDto;
     const shortCode = await this.generateUniqueShortCode();
 
@@ -29,13 +29,13 @@ export class ShortenUrlService {
     let shortCode: string;
     let isUnique = false;
 
-    do {
+    while (!isUnique) {
       shortCode = this.generateRandomCode();
       const existing = await this.shortenUrlRepository.findOneBy({ shortCode });
       if (!existing) {
         isUnique = true;
       }
-    } while (!isUnique);
+    }
 
     return shortCode;
   }
